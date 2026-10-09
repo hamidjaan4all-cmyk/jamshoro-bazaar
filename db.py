@@ -84,6 +84,23 @@ CREATE TABLE IF NOT EXISTS otp_codes (
     used INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
+CREATE TABLE IF NOT EXISTS custom_orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_code TEXT UNIQUE NOT NULL,
+    customer_name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    area_key TEXT NOT NULL,
+    address_detail TEXT NOT NULL,
+    items_text TEXT NOT NULL,
+    shop_hint TEXT,
+    delivery_fee REAL NOT NULL,
+    items_total REAL,
+    status TEXT NOT NULL DEFAULT 'placed',
+    rider_id INTEGER REFERENCES riders(id),
+    user_id INTEGER REFERENCES users(id),
+    admin_note TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+);
 """
 
 AREAS = [
@@ -261,6 +278,23 @@ CREATE TABLE IF NOT EXISTS otp_codes (
     expires_at TEXT NOT NULL,
     attempts INTEGER NOT NULL DEFAULT 0,
     used INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+);
+CREATE TABLE IF NOT EXISTS custom_orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_code TEXT UNIQUE NOT NULL,
+    customer_name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    area_key TEXT NOT NULL,
+    address_detail TEXT NOT NULL,
+    items_text TEXT NOT NULL,
+    shop_hint TEXT,
+    delivery_fee REAL NOT NULL,
+    items_total REAL,
+    status TEXT NOT NULL DEFAULT 'placed',
+    rider_id INTEGER REFERENCES riders(id),
+    user_id INTEGER REFERENCES users(id),
+    admin_note TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
 """)

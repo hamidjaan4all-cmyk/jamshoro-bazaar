@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="{{ 'ur' if rtl else 'en' }}" dir="{{ 'rtl' if rtl else 'ltr' }}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ order['order_code'] }}</title><link rel="stylesheet" href="/static/style.css">
+{% if rtl %}
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap" rel="stylesheet">
+<style>body{font-family:'Noto Nastaliq Urdu',serif; line-height:2.1;}</style>
+{% endif %}
+</head>
+<body>
+<header class="topbar rider"><a class="brand" href="/rider">🛵 {{ T('rider_panel') }}</a></header>
+<main class="wrap">
+<a href="/rider">← {{ T('back') }}</a>
+<h1>{{ order['order_code'] }} ({{ T('custom_order') }})</h1>
+<div class="card">
+  <div class="card-sub"><strong>{{ T('customer') }}:</strong> {{ order['customer_name'] }}</div>
+  <div class="card-sub"><strong>{{ T('phone') }}:</strong> <a href="tel:{{ order['phone'] }}">{{ order['phone'] }}</a> 📞</div>
+  <div class="card-sub"><strong>{{ T('address') }}:</strong> {{ area_name(order['area_key']) }}, {{ order['address_detail'] }}</div>
+  <div class="card-sub"><strong>{{ T('preferred_shop') }}:</strong> {{ order['shop_hint'] or '—' }}</div>
+  <h3>{{ T('shopping_list') }}</h3>
+  <pre class="shoplist">{{ order['items_text'] }}</pre>
+  {% if order['admin_note'] %}<div class="card-sub"><strong>{{ T('admin_note') }}:</strong> {{ order['admin_note'] }}</div>{% endif %}
+  <div class="row"><span>{{ T('delivery_fee') }}</span><span>{{ T('rs') }} {{ order['delivery_fee']|int }}</span></div>
+  <div class="row"><span>{{ T('items_total') }}</span><span>{% if order['items_total'] is not none %}{{ T('rs') }} {{ order['items_total']|int }}{% else %}{{ T('to_be_confirmed') }}{% endif %}</span></div>
+</div>
+<form method="post" action="/rider/custom-orders/{{ order['id'] }}/update" class="form">
+  <label>{{ T('set_items_total') }}<input name="items_total" inputmode="numeric" placeholder="{{ T('rs') }}" value="{{ order['items_total']|int if order['items_total'] is not none else '' }}"></label>
+  <button class="btn" type="submit">{{ T('update') }}</button>
+</form>
+<div class="two">
+  {% if order['status'] != 'onway' and order['status'] != 'delivered' %}
+  <form method="post" action="/rider/custom-orders/{{ order['id'] }}/update">
+    <input type="hidden" name="status" value="onway">
+    <button class="btn big" type="submit">🛵 {{ T('mark_picked') }}</button>
+  </form>
+  {% endif %}
+  {% if order['status'] == 'onway' %}
+  <form method="post" action="/rider/custom-orders/{{ order['id'] }}/update">
+    <input type="hidden" name="status" value="delivered">
+    <button class="btn big" type="submit">✅ {{ T('mark_delivered') }}</button>
+  </form>
+  {% endif %}
+</div>
+</main>
+</body>
+</html>

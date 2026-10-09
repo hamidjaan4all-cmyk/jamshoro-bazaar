@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %} — {{ T('custom_order') }}{% endblock %}
+{% block content %}
+<h1>{{ T('custom_order_title') }}</h1>
+<p class="muted">{{ T('custom_order_desc') }}</p>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<form method="post" action="/custom-order" class="form">
+  <label>{{ T('your_name') }}<input name="name" required value="{{ form.name if form else user_name }}"></label>
+  <label>{{ T('mobile_number') }}<input name="phone" required inputmode="numeric" placeholder="03001234567" value="{{ form.phone if form else user_phone }}" readonly></label>
+  <label>{{ T('area') }}
+    <select name="area" required>
+      <option value="">{{ T('select_area') }}</option>
+      {% for key, en, ur in areas %}
+      <option value="{{ key }}" {% if form and form.area == key %}selected{% endif %}>{{ ur if rtl else en }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>{{ T('address_detail') }}<input name="address" required placeholder="{{ T('address_hint') }}" value="{{ form.address if form else '' }}"></label>
+  <label>{{ T('your_shopping_list') }}
+    <textarea name="items_text" required rows="5" placeholder="{{ T('list_placeholder') }}">{{ form.items_text if form else '' }}</textarea>
+  </label>
+  <label>{{ T('preferred_shop') }}<input name="shop_hint" placeholder="{{ T('shop_hint_placeholder') }}" value="{{ form.shop_hint if form else '' }}"></label>
+  <div class="paybox">💵 {{ T('payment_method') }}: <strong>{{ T('cod') }}</strong> — {{ T('delivery_fee') }}: {{ T('rs') }} {{ fee|int }}</div>
+  <button class="btn big" type="submit">{{ T('place_custom_order') }}</button>
+</form>
+{% endblock %}

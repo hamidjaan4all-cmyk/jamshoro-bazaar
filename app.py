@@ -153,6 +153,14 @@ def new_order_code(db):
     raise RuntimeError("order code collision")
 
 
+def new_custom_order_code(db):
+    for _ in range(20):
+        code = "JBC-%06d" % random.randint(100000, 999999)
+        if not db.execute("SELECT 1 FROM custom_orders WHERE order_code=?", (code,)).fetchone():
+            return code
+    raise RuntimeError("custom order code collision")
+
+
 def admin_required(f):
     @wraps(f)
     def wrapper(*a, **kw):
@@ -313,11 +321,65 @@ def order_confirm(code):
     return render_template("confirm.html", order=o)
 
 
+# ---------- custom orders (personal-shopper: customer lists items, rider buys) ----------
+@app.route("/custom-order")
+@customer_login_required
+def custom_order_form():
+    return render_template("custom_order.html", areas=AREAS, fee=DELIVERY_FEE)
+
+
+@app.route("/custom-order", methods=["POST"])
+@customer_login_required
+def custom_order_post():
+    l = lang()
+    name = request.form.get("name", "").strip() or session.get("user_name", "")
+    phone = re.sub(r"[\s-]", "", request.form.get("phone", "").strip()) or session.get("user_phone", "")
+    area = request.form.get("area", "")
+    addr = request.form.get("address", "").strip()
+    items_text = request.form.get("items_text", "").strip()
+    shop_hint = request.form.get("shop_hint", "").strip()
+    err = None
+    if not name:
+        err = tr("name_required", l)
+    elif not PHONE_RE.match(phone):
+        err = tr("invalid_phone", l)
+    elif area not in AREA_MAP:
+        err = tr("area_required", l)
+    elif not addr:
+        err = tr("address_required", l)
+    elif not items_text:
+        err = tr("items_required", l)
+    if err:
+        return render_template("custom_order.html", areas=AREAS, fee=DELIVERY_FEE,
+                               error=err, form=request.form), 400
+    db = get_db()
+    code = new_custom_order_code(db)
+    db.execute(
+        "INSERT INTO custom_orders (order_code, customer_name, phone, area_key, address_detail,"
+        " items_text, shop_hint, delivery_fee, status, user_id)"
+        " VALUES (?,?,?,?,?,?,?,?, 'placed', ?)",
+        (code, name, phone, area, addr, items_text, shop_hint or None, DELIVERY_FEE,
+         session.get("user_id")))
+    db.commit(); db.close()
+    return redirect(url_for("custom_order_confirm", code=code))
+
+
+@app.route("/custom-order/<code>")
+def custom_order_confirm(code):
+    db = get_db()
+    o = db.execute("SELECT * FROM custom_orders WHERE order_code=?", (code,)).fetchone()
+    db.close()
+    if not o:
+        abort(404)
+    return render_template("custom_confirm.html", order=o)
+
+
 @app.route("/track")
 def track():
     code = request.args.get("code", "").strip().upper()
     phone = re.sub(r"[\s-]", "", request.args.get("phone", "").strip())
     order, items, orders = None, [], []
+    corder, corders = None, []
     db = get_db()
     if code:
         order = db.execute(
@@ -325,12 +387,18 @@ def track():
             " WHERE o.order_code=?", (code,)).fetchone()
         if order:
             items = db.execute("SELECT * FROM order_items WHERE order_id=?", (order["id"],)).fetchall()
+        else:
+            corder = db.execute(
+                "SELECT o.*, r.name AS rider_name FROM custom_orders o LEFT JOIN riders r ON r.id=o.rider_id"
+                " WHERE o.order_code=?", (code,)).fetchone()
     elif phone and PHONE_RE.match(phone):
         orders = db.execute("SELECT * FROM orders WHERE phone=? ORDER BY id DESC LIMIT 10", (phone,)).fetchall()
+        corders = db.execute("SELECT * FROM custom_orders WHERE phone=? ORDER BY id DESC LIMIT 10", (phone,)).fetchall()
     db.close()
     searched = bool(code or phone)
-    not_found = searched and not order and not orders
+    not_found = searched and not order and not orders and not corder and not corders
     return render_template("track.html", order=order, items=items, orders=orders,
+                           corder=corder, corders=corders,
                            not_found=not_found, code=request.args.get("code", ""))
 
 
@@ -555,6 +623,61 @@ def admin_order_assign(oid):
     return redirect(url_for("admin_order_detail", oid=oid))
 
 
+# ---------- admin: custom orders ----------
+@app.route("/admin/custom-orders")
+@admin_required
+def admin_custom_orders():
+    st = request.args.get("status", "")
+    db = get_db()
+    sql = ("SELECT o.*, r.name AS rider_name FROM custom_orders o LEFT JOIN riders r ON r.id=o.rider_id")
+    params = []
+    if st in STATUSES:
+        sql += " WHERE o.status=?"; params.append(st)
+    sql += " ORDER BY o.id DESC"
+    orders = db.execute(sql, params).fetchall()
+    db.close()
+    return render_template("admin/custom_orders.html", orders=orders,
+                           statuses=STATUSES, fstatus=st)
+
+
+@app.route("/admin/custom-orders/<int:cid>")
+@admin_required
+def admin_custom_order_detail(cid):
+    db = get_db()
+    o = db.execute("SELECT o.*, r.name AS rider_name FROM custom_orders o LEFT JOIN riders r ON r.id=o.rider_id WHERE o.id=?",
+                   (cid,)).fetchone()
+    if not o:
+        db.close(); abort(404)
+    riders = db.execute("SELECT * FROM riders WHERE active=1 ORDER BY name").fetchall()
+    db.close()
+    return render_template("admin/custom_order_detail.html", order=o,
+                           riders=riders, statuses=STATUSES)
+
+
+@app.route("/admin/custom-orders/<int:cid>/update", methods=["POST"])
+@admin_required
+def admin_custom_order_update(cid):
+    db = get_db()
+    st = request.form.get("status", "")
+    if st in STATUSES:
+        db.execute("UPDATE custom_orders SET status=? WHERE id=?", (st, cid))
+    rid = request.form.get("rider_id") or None
+    if rid:
+        ok = db.execute("SELECT 1 FROM riders WHERE id=? AND active=1", (rid,)).fetchone()
+        rid = rid if ok else None
+    db.execute("UPDATE custom_orders SET rider_id=? WHERE id=?", (rid, cid))
+    items_total = request.form.get("items_total", "").strip()
+    if items_total:
+        try:
+            db.execute("UPDATE custom_orders SET items_total=? WHERE id=?", (float(items_total), cid))
+        except ValueError:
+            pass
+    note = request.form.get("admin_note", "").strip()
+    db.execute("UPDATE custom_orders SET admin_note=? WHERE id=?", (note or None, cid))
+    db.commit(); db.close()
+    return redirect(url_for("admin_custom_order_detail", cid=cid))
+
+
 def _crud_list(tpl, table, order_by="id"):
     db = get_db()
     rows = db.execute("SELECT * FROM %s ORDER BY %s" % (table, order_by)).fetchall()
@@ -747,8 +870,15 @@ def rider_home():
     done = db.execute(
         "SELECT * FROM orders WHERE rider_id=? AND status='delivered' ORDER BY id DESC LIMIT 10",
         (session["rider_id"],)).fetchall()
+    corders = db.execute(
+        "SELECT * FROM custom_orders WHERE rider_id=? AND status IN ('confirmed','preparing','onway')"
+        " ORDER BY id DESC", (session["rider_id"],)).fetchall()
+    cdone = db.execute(
+        "SELECT * FROM custom_orders WHERE rider_id=? AND status='delivered' ORDER BY id DESC LIMIT 10",
+        (session["rider_id"],)).fetchall()
     db.close()
-    return render_template("rider/home.html", me=me, orders=orders, done=done)
+    return render_template("rider/home.html", me=me, orders=orders, done=done,
+                           corders=corders, cdone=cdone)
 
 
 @app.route("/rider/orders/<int:oid>")
@@ -774,6 +904,36 @@ def rider_order_status(oid):
     return redirect(url_for("rider_order", oid=oid))
 
 
+@app.route("/rider/custom-orders/<int:cid>")
+@rider_required
+def rider_custom_order(cid):
+    db = get_db()
+    o = db.execute("SELECT * FROM custom_orders WHERE id=? AND rider_id=?", (cid, session["rider_id"])).fetchone()
+    if not o:
+        db.close(); abort(404)
+    db.close()
+    return render_template("rider/custom_order.html", order=o)
+
+
+@app.route("/rider/custom-orders/<int:cid>/update", methods=["POST"])
+@rider_required
+def rider_custom_order_update(cid):
+    db = get_db()
+    st = request.form.get("status", "")
+    if st in ("onway", "delivered"):
+        db.execute("UPDATE custom_orders SET status=? WHERE id=? AND rider_id=?",
+                   (st, cid, session["rider_id"]))
+    items_total = request.form.get("items_total", "").strip()
+    if items_total:
+        try:
+            db.execute("UPDATE custom_orders SET items_total=? WHERE id=? AND rider_id=?",
+                       (float(items_total), cid, session["rider_id"]))
+        except ValueError:
+            pass
+    db.commit(); db.close()
+    return redirect(url_for("rider_custom_order", cid=cid))
+
+
 # ---------- PWA ----------
 @app.route("/manifest.json")
 def manifest():
@@ -791,6 +951,11 @@ def manifest():
 @app.route("/health")
 def health():
     return "ok"
+
+
+# Ensure DB schema is current on every startup (also covers PythonAnywhere,
+# where the __main__ block never runs). migrate() is idempotent.
+migrate()
 
 
 if __name__ == "__main__":

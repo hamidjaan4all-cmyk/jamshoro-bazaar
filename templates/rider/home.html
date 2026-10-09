@@ -23,12 +23,27 @@
   <div class="card-sub">{{ area_name(o['area_key']) }}, {{ o['address_detail'] }} • {{ T('rs') }} {{ o['total']|int }}</div>
   <span class="pill">{{ st_name(o['status']) }}</span>
 </a>
-{% else %}<p>{{ T('no_assigned') }}</p>{% endfor %}
-{% if done %}
+{% endfor %}
+{% if corders %}
+<h2>{{ T('my_custom_deliveries') }}</h2>
+{% for o in corders %}
+<a class="card" href="/rider/custom-orders/{{ o['id'] }}">
+  <div class="card-title">{{ o['order_code'] }} — {{ o['customer_name'] }}</div>
+  <div class="card-sub">{{ area_name(o['area_key']) }}, {{ o['address_detail'] }}</div>
+  <span class="pill">{{ st_name(o['status']) }}</span>
+</a>
+{% endfor %}
+{% endif %}
+{% if not orders and not corders %}<p>{{ T('no_assigned') }}</p>{% endif %}
+{% if done or cdone %}
 <h2>{{ st_name('delivered') }}</h2>
 {% for o in done %}
 <div class="card"><div class="card-title">{{ o['order_code'] }} — {{ o['customer_name'] }}</div>
 <div class="card-sub">{{ o['created_at'] }} • {{ T('rs') }} {{ o['total']|int }}</div></div>
+{% endfor %}
+{% for o in cdone %}
+<div class="card"><div class="card-title">{{ o['order_code'] }} — {{ o['customer_name'] }}</div>
+<div class="card-sub">{{ o['created_at'] }} • {{ T('custom_order') }}</div></div>
 {% endfor %}
 {% endif %}
 </main>

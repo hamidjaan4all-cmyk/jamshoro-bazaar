@@ -32,12 +32,44 @@
 </div>
 {% endif %}
 
+{% if corder %}
+<div class="card">
+  <div class="card-title">{{ corder['order_code'] }} ({{ T('custom_order') }})</div>
+  <div class="card-sub">{{ T('delivery_to') }}: {{ corder['customer_name'] }} • {{ area_name(corder['area_key']) }} • {{ corder['address_detail'] }}</div>
+  <div class="card-sub">{{ T('rider') }}: {{ corder['rider_name'] or T('not_assigned') }}</div>
+  <div class="timeline">
+    {% for s in ['placed','confirmed','preparing','onway','delivered'] %}
+    <div class="step{{ ' done' if corder['status'] in ['placed','confirmed','preparing','onway','delivered'] and ['placed','confirmed','preparing','onway','delivered'].index(s) <= ['placed','confirmed','preparing','onway','delivered'].index(corder['status']) else '' }}{{ ' cancelled' if corder['status']=='cancelled' else '' }}">{{ st_name(s) }}</div>
+    {% endfor %}
+    {% if corder['status']=='cancelled' %}<div class="step cancelled">{{ st_name('cancelled') }}</div>{% endif %}
+  </div>
+  <h3>{{ T('shopping_list') }}</h3>
+  <pre class="shoplist">{{ corder['items_text'] }}</pre>
+  <div class="row"><span>{{ T('delivery_fee') }}</span><span>{{ T('rs') }} {{ corder['delivery_fee']|int }}</span></div>
+  <div class="row"><span>{{ T('items_total') }}</span><span>{% if corder['items_total'] is not none %}{{ T('rs') }} {{ corder['items_total']|int }}{% else %}{{ T('to_be_confirmed') }}{% endif %}</span></div>
+  {% if corder['items_total'] is not none %}
+  <div class="row grand"><span>{{ T('grand_total') }} ({{ T('cod') }})</span><span>{{ T('rs') }} {{ (corder['items_total'] + corder['delivery_fee'])|int }}</span></div>
+  {% endif %}
+</div>
+{% endif %}
+
 {% if orders %}
 <h2>{{ T('your_orders') }}</h2>
 {% for o in orders %}
 <a class="card" href="/track?code={{ o['order_code'] }}">
   <div class="card-title">{{ o['order_code'] }}</div>
   <div class="card-sub">{{ o['created_at'] }} • {{ T('rs') }} {{ o['total']|int }}</div>
+  <span class="pill">{{ st_name(o['status']) }}</span>
+</a>
+{% endfor %}
+{% endif %}
+
+{% if corders %}
+<h2>{{ T('custom_orders') }}</h2>
+{% for o in corders %}
+<a class="card" href="/track?code={{ o['order_code'] }}">
+  <div class="card-title">{{ o['order_code'] }}</div>
+  <div class="card-sub">{{ o['created_at'] }} • {% if o['items_total'] is not none %}{{ T('rs') }} {{ (o['items_total'] + o['delivery_fee'])|int }}{% else %}{{ T('to_be_confirmed') }}{% endif %}</div>
   <span class="pill">{{ st_name(o['status']) }}</span>
 </a>
 {% endfor %}

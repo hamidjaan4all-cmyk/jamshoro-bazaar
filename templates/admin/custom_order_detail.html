@@ -1,0 +1,40 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<a href="/admin/custom-orders">← {{ T('back') }}</a>
+<h1>{{ T('order_details') }}: {{ order['order_code'] }}</h1>
+<div class="card">
+  <div class="card-sub"><strong>{{ T('customer') }}:</strong> {{ order['customer_name'] }} • {{ order['phone'] }}</div>
+  <div class="card-sub"><strong>{{ T('address') }}:</strong> {{ area_name(order['area_key']) }}, {{ order['address_detail'] }}</div>
+  <div class="card-sub"><strong>{{ T('order_date') }}:</strong> {{ order['created_at'] }}</div>
+  <div class="card-sub"><strong>{{ T('rider') }}:</strong> {{ order['rider_name'] or T('unassigned') }}</div>
+  <div class="card-sub"><strong>{{ T('preferred_shop') }}:</strong> {{ order['shop_hint'] or '—' }}</div>
+  <h3>{{ T('shopping_list') }}</h3>
+  <pre class="shoplist">{{ order['items_text'] }}</pre>
+  {% if order['admin_note'] %}<div class="card-sub"><strong>{{ T('admin_note') }}:</strong> {{ order['admin_note'] }}</div>{% endif %}
+  <div class="row"><span>{{ T('delivery_fee') }}</span><span>{{ T('rs') }} {{ order['delivery_fee']|int }}</span></div>
+  <div class="row"><span>{{ T('items_total') }}</span><span>{% if order['items_total'] is not none %}{{ T('rs') }} {{ order['items_total']|int }}{% else %}{{ T('to_be_confirmed') }}{% endif %}</span></div>
+  {% if order['items_total'] is not none %}
+  <div class="row grand"><span>{{ T('grand_total') }} ({{ T('cod') }})</span><span>{{ T('rs') }} {{ (order['items_total'] + order['delivery_fee'])|int }}</span></div>
+  {% endif %}
+</div>
+<form method="post" action="/admin/custom-orders/{{ order['id'] }}/update" class="form">
+  <label>{{ T('change_status') }}
+    <select name="status">
+      {% for s in statuses %}
+      <option value="{{ s }}" {% if order['status'] == s %}selected{% endif %}>{{ st_name(s) }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>{{ T('assign_rider') }}
+    <select name="rider_id">
+      <option value="">{{ T('unassigned') }}</option>
+      {% for r in riders %}
+      <option value="{{ r['id'] }}" {% if order['rider_id'] == r['id'] %}selected{% endif %}>{{ r['name'] }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>{{ T('set_items_total') }}<input name="items_total" inputmode="numeric" value="{{ order['items_total']|int if order['items_total'] is not none else '' }}"></label>
+  <label>{{ T('admin_note') }}<input name="admin_note" value="{{ order['admin_note'] or '' }}"></label>
+  <button class="btn" type="submit">{{ T('update') }}</button>
+</form>
+{% endblock %}
