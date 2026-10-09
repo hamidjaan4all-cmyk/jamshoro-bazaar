@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="{{ 'ur' if rtl else 'en' }}" dir="{{ 'rtl' if rtl else 'ltr' }}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ T('rider_panel') }}</title><link rel="stylesheet" href="/static/style.css">
+{% if rtl %}
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap" rel="stylesheet">
+<style>body{font-family:'Noto Nastaliq Urdu',serif; line-height:2.1;}</style>
+{% endif %}
+</head>
+<body>
+<header class="topbar rider">
+  <span class="brand">🛵 {{ me['name'] }}</span>
+  <nav>
+    <a href="/rider/logout">{{ T('logout') }}</a>
+    <a class="langbtn" href="?lang={{ 'en' if rtl else 'ur' }}">{{ T('lang_toggle') }}</a>
+  </nav>
+</header>
+<main class="wrap">
+<h1>{{ T('my_deliveries') }}</h1>
+{% for o in orders %}
+<a class="card" href="/rider/orders/{{ o['id'] }}">
+  <div class="card-title">{{ o['order_code'] }} — {{ o['customer_name'] }}</div>
+  <div class="card-sub">{{ area_name(o['area_key']) }}, {{ o['address_detail'] }} • {{ T('rs') }} {{ o['total']|int }}</div>
+  <span class="pill">{{ st_name(o['status']) }}</span>
+</a>
+{% else %}<p>{{ T('no_assigned') }}</p>{% endfor %}
+{% if done %}
+<h2>{{ st_name('delivered') }}</h2>
+{% for o in done %}
+<div class="card"><div class="card-title">{{ o['order_code'] }} — {{ o['customer_name'] }}</div>
+<div class="card-sub">{{ o['created_at'] }} • {{ T('rs') }} {{ o['total']|int }}</div></div>
+{% endfor %}
+{% endif %}
+</main>
+</body>
+</html>

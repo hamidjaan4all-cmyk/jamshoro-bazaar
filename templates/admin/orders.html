@@ -1,0 +1,19 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<h1>{{ T('orders') }}</h1>
+<form method="get" class="inlineform">
+  <select name="status" onchange="this.form.submit()">
+    <option value="">{{ T('filter_status') }}: {{ T('all') }}</option>
+    {% for s in statuses %}
+    <option value="{{ s }}" {% if fstatus == s %}selected{% endif %}>{{ st_name(s) }}</option>
+    {% endfor %}
+  </select>
+</form>
+{% for o in orders %}
+<a class="card" href="/admin/orders/{{ o['id'] }}">
+  <div class="card-title">{{ o['order_code'] }} — {{ o['customer_name'] }} ({{ o['phone'] }})</div>
+  <div class="card-sub">{{ o['created_at'] }} • {{ area_name(o['area_key']) }} • {{ T('rs') }} {{ o['total']|int }} • {{ T('rider') }}: {{ o['rider_name'] or T('unassigned') }}</div>
+  <span class="pill">{{ st_name(o['status']) }}</span>
+</a>
+{% else %}<p>{{ T('no_orders') }}</p>{% endfor %}
+{% endblock %}

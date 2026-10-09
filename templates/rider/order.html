@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="{{ 'ur' if rtl else 'en' }}" dir="{{ 'rtl' if rtl else 'ltr' }}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ order['order_code'] }}</title><link rel="stylesheet" href="/static/style.css">
+{% if rtl %}
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap" rel="stylesheet">
+<style>body{font-family:'Noto Nastaliq Urdu',serif; line-height:2.1;}</style>
+{% endif %}
+</head>
+<body>
+<header class="topbar rider"><a class="brand" href="/rider">🛵 {{ T('rider_panel') }}</a></header>
+<main class="wrap">
+<a href="/rider">← {{ T('back') }}</a>
+<h1>{{ order['order_code'] }}</h1>
+<div class="card">
+  <div class="card-sub"><strong>{{ T('customer') }}:</strong> {{ order['customer_name'] }}</div>
+  <div class="card-sub"><strong>{{ T('phone') }}:</strong> <a href="tel:{{ order['phone'] }}">{{ order['phone'] }}</a> 📞</div>
+  <div class="card-sub"><strong>{{ T('address') }}:</strong> {{ area_name(order['area_key']) }}, {{ order['address_detail'] }}</div>
+  {% for it in items %}
+  <div class="row"><span>{{ it['name_ur'] if rtl else it['name_en'] }} × {{ it['qty'] }}</span><span>{{ T('rs') }} {{ it['line_total']|int }}</span></div>
+  {% endfor %}
+  <div class="row grand"><span>{{ T('grand_total') }} ({{ T('cod') }})</span><span>{{ T('rs') }} {{ order['total']|int }}</span></div>
+</div>
+<div class="two">
+  {% if order['status'] != 'onway' and order['status'] != 'delivered' %}
+  <form method="post" action="/rider/orders/{{ order['id'] }}/status">
+    <input type="hidden" name="status" value="onway">
+    <button class="btn big" type="submit">🛵 {{ T('mark_picked') }}</button>
+  </form>
+  {% endif %}
+  {% if order['status'] == 'onway' %}
+  <form method="post" action="/rider/orders/{{ order['id'] }}/status">
+    <input type="hidden" name="status" value="delivered">
+    <button class="btn big" type="submit">✅ {{ T('mark_delivered') }}</button>
+  </form>
+  {% endif %}
+</div>
+</main>
+</body>
+</html>

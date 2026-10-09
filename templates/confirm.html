@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %} — {{ T('order_placed') }}{% endblock %}
+{% block content %}
+<div class="center">
+  <div class="bigcheck">✅</div>
+  <h1>{{ T('order_placed') }}</h1>
+  <p class="ordercode">{{ T('order_id') }}: <strong>{{ order['order_code'] }}</strong></p>
+  <p>{{ T('thanks_msg') }}</p>
+  <p class="muted">{{ T('grand_total') }}: {{ T('rs') }} {{ order['total']|int }}</p>
+  <a class="btn" href="/track?code={{ order['order_code'] }}">{{ T('track_this_order') }}</a>
+  <a class="btn ghost" href="/">{{ T('back_home') }}</a>
+</div>
+{% endblock %}

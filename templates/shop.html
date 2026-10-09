@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %} — {{ shop['name_ur'] if rtl else shop['name_en'] }}{% endblock %}
+{% block content %}
+<a href="/">← {{ T('back') }}</a>
+<h1>{{ shop['name_ur'] if rtl else shop['name_en'] }}</h1>
+<p class="muted">{{ T(shop['cat_key']) }} • {{ area_name(shop['area_key']) }}
+  <span class="pill {{ 'on' if shop['is_open'] else 'off' }}">{{ T('open') if shop['is_open'] else T('closed') }}</span></p>
+
+<h2>{{ T('items') }}</h2>
+<div class="items">
+{% for it in items %}
+  <div class="item">
+    <div>
+      <div class="item-name">{{ it['name_ur'] if rtl else it['name_en'] }}</div>
+      <div class="muted small">{{ it['name_en'] if rtl else it['name_ur'] }}</div>
+      <div class="price">{{ T('rs') }} {{ it['price']|int }} <span class="muted small">{{ T('per') }} {{ it['unit_ur'] if rtl else it['unit_en'] }}</span></div>
+    </div>
+    <form method="post" action="/cart/add/{{ it['id'] }}">
+      <input type="hidden" name="next" value="/shop/{{ shop['id'] }}">
+      <button class="btn" type="submit" {% if not shop['is_open'] %}disabled{% endif %}>+ {{ T('add_to_cart') }}</button>
+    </form>
+  </div>
+{% else %}
+  <p>{{ T('no_items') }}</p>
+{% endfor %}
+</div>
+{% endblock %}

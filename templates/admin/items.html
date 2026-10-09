@@ -1,0 +1,37 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<a href="/admin/shops">← {{ T('back') }}</a>
+<h1>{{ shop['name_en'] }} — {{ T('manage_items') }}</h1>
+<form method="post" action="/admin/shops/{{ shop['id'] }}/items/add" class="form inline-add">
+  <h3>{{ T('add_item') }}</h3>
+  <input name="name_en" required placeholder="{{ T('item_name') }} (EN)">
+  <input name="name_ur" required placeholder="{{ T('item_name_ur') }}">
+  <input name="price" type="number" step="1" min="1" required placeholder="{{ T('price') }} (Rs)">
+  <input name="unit_en" placeholder="unit EN (e.g. kg)">
+  <input name="unit_ur" placeholder="اکائی اردو">
+  <label class="chk"><input type="checkbox" name="in_stock" checked> {{ T('in_stock') }}</label>
+  <button class="btn" type="submit">{{ T('add') }}</button>
+</form>
+{% for it in rows %}
+<div class="card">
+  <div class="card-title">{{ it['name_en'] }} / {{ it['name_ur'] }}</div>
+  <div class="card-sub">{{ T('rs') }} {{ it['price']|int }} / {{ it['unit_en'] }} • {{ T('in_stock') if it['in_stock'] else T('closed') }}</div>
+  <div class="rowbtns">
+    <form method="post" action="/admin/items/{{ it['id'] }}/delete" onsubmit="return confirm('{{ T('confirm_delete') }}')">
+      <button class="btn small danger" type="submit">{{ T('delete') }}</button>
+    </form>
+  </div>
+  <details><summary>{{ T('edit') }}</summary>
+  <form method="post" action="/admin/items/{{ it['id'] }}/edit" class="form">
+    <input name="name_en" required value="{{ it['name_en'] }}">
+    <input name="name_ur" required value="{{ it['name_ur'] }}">
+    <input name="price" type="number" step="1" min="1" required value="{{ it['price']|int }}">
+    <input name="unit_en" value="{{ it['unit_en'] }}">
+    <input name="unit_ur" value="{{ it['unit_ur'] }}">
+    <label class="chk"><input type="checkbox" name="in_stock" {% if it['in_stock'] %}checked{% endif %}> {{ T('in_stock') }}</label>
+    <button class="btn small" type="submit">{{ T('save') }}</button>
+  </form>
+  </details>
+</div>
+{% endfor %}
+{% endblock %}

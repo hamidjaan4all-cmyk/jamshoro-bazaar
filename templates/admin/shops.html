@@ -1,0 +1,35 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<h1>{{ T('shops') }}</h1>
+<form method="post" action="/admin/shops/add" class="form inline-add">
+  <h3>{{ T('add_shop') }}</h3>
+  <input name="name_en" required placeholder="{{ T('shop_name') }} (EN)">
+  <input name="name_ur" required placeholder="{{ T('shop_name_ur') }}">
+  <select name="category_id">{% for c in categories %}<option value="{{ c['id'] }}">{{ c['name_en'] }}</option>{% endfor %}</select>
+  <select name="area_key">{% for key, en, ur in areas %}<option value="{{ key }}">{{ en }}</option>{% endfor %}</select>
+  <label class="chk"><input type="checkbox" name="is_open" checked> {{ T('is_open') }}</label>
+  <button class="btn" type="submit">{{ T('add') }}</button>
+</form>
+{% for s in rows %}
+<div class="card">
+  <div class="card-title">{{ s['name_en'] }} / {{ s['name_ur'] }}</div>
+  <div class="card-sub">{{ T(s['cat_key']) }} • {{ area_name(s['area_key']) }} • {{ T('open') if s['is_open'] else T('closed') }}</div>
+  <div class="rowbtns">
+    <a class="btn small" href="/admin/shops/{{ s['id'] }}/items">{{ T('manage_items') }}</a>
+    <form method="post" action="/admin/shops/{{ s['id'] }}/delete" onsubmit="return confirm('{{ T('confirm_delete') }}')">
+      <button class="btn small danger" type="submit">{{ T('delete') }}</button>
+    </form>
+  </div>
+  <details><summary>{{ T('edit') }}</summary>
+  <form method="post" action="/admin/shops/{{ s['id'] }}/edit" class="form">
+    <input name="name_en" required value="{{ s['name_en'] }}">
+    <input name="name_ur" required value="{{ s['name_ur'] }}">
+    <select name="category_id">{% for c in categories %}<option value="{{ c['id'] }}" {% if c['id']==s['category_id'] %}selected{% endif %}>{{ c['name_en'] }}</option>{% endfor %}</select>
+    <select name="area_key">{% for key, en, ur in areas %}<option value="{{ key }}" {% if key==s['area_key'] %}selected{% endif %}>{{ en }}</option>{% endfor %}</select>
+    <label class="chk"><input type="checkbox" name="is_open" {% if s['is_open'] %}checked{% endif %}> {{ T('is_open') }}</label>
+    <button class="btn small" type="submit">{{ T('save') }}</button>
+  </form>
+  </details>
+</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<h1>{{ T('dashboard') }}</h1>
+<div class="stats">
+  <div class="stat"><div class="num">{{ n_orders }}</div><div>{{ T('todays_orders') }}</div></div>
+  <div class="stat"><div class="num">{{ T('rs') }} {{ revenue|int }}</div><div>{{ T('todays_revenue') }}</div></div>
+</div>
+<h2>{{ T('orders_by_status') }}</h2>
+<div class="tiles">
+{% for s in statuses %}
+  <a class="tile" href="/admin/orders?status={{ s }}">{{ st_name(s) }}: <strong>{{ by_status.get(s, 0) }}</strong></a>
+{% endfor %}
+</div>
+<h2>{{ T('orders') }}</h2>
+{% for o in recent %}
+<a class="card" href="/admin/orders/{{ o['id'] }}">
+  <div class="card-title">{{ o['order_code'] }} — {{ o['customer_name'] }}</div>
+  <div class="card-sub">{{ o['created_at'] }} • {{ T('rs') }} {{ o['total']|int }}</div>
+  <span class="pill">{{ st_name(o['status']) }}</span>
+</a>
+{% else %}<p>{{ T('no_orders') }}</p>{% endfor %}
+{% endblock %}

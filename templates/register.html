@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %} — {{ T('register_login') }}{% endblock %}
+{% block content %}
+<h1>📱 {{ T('register_login') }}</h1>
+<p>{{ T('login_needed') }}</p>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<form method="post" action="/register?next={{ next }}" class="form">
+  <input type="hidden" name="next" value="{{ next }}">
+  <label>{{ T('enter_mobile') }}
+    <input name="phone" required inputmode="numeric" placeholder="03001234567" autocomplete="tel">
+  </label>
+  <button class="btn big" type="submit">{{ T('send_code') }}</button>
+</form>
+{% endblock %}

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="{{ 'ur' if rtl else 'en' }}" dir="{{ 'rtl' if rtl else 'ltr' }}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ T('rider_panel') }}</title><link rel="stylesheet" href="/static/style.css"></head>
+<body>
+<main class="wrap narrow">
+<h1>🛵 {{ T('rider_panel') }}</h1>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<form method="post" class="form">
+  <label>{{ T('username') }}<input name="username" required></label>
+  <label>{{ T('password') }}<input name="password" type="password" required></label>
+  <button class="btn big" type="submit">{{ T('login') }}</button>
+</form>
+</main>
+</body>
+</html>

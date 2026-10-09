@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="{{ 'ur' if rtl else 'en' }}" dir="{{ 'rtl' if rtl else 'ltr' }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ T('admin_panel') }}{% block title %}{% endblock %}</title>
+<link rel="stylesheet" href="/static/style.css">
+{% if rtl %}
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap" rel="stylesheet">
+<style>body{font-family:'Noto Nastaliq Urdu',serif; line-height:2.1;}</style>
+{% endif %}
+</head>
+<body>
+<header class="topbar admin">
+  <a class="brand" href="/admin">⚙️ {{ T('admin_panel') }}</a>
+  <nav>
+    <a href="/admin">{{ T('dashboard') }}</a>
+    <a href="/admin/orders">{{ T('orders') }}</a>
+    <a href="/admin/shops">{{ T('shops') }}</a>
+    <a href="/admin/categories">{{ T('categories') }}</a>
+    <a href="/admin/riders">{{ T('riders') }}</a>
+    <a href="/admin/logout">{{ T('logout') }}</a>
+    <a class="langbtn" href="?lang={{ 'en' if rtl else 'ur' }}">{{ T('lang_toggle') }}</a>
+  </nav>
+</header>
+<main class="wrap">
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>

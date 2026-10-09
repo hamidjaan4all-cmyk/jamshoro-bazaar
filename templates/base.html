@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="{{ 'ur' if rtl else 'en' }}" dir="{{ 'rtl' if rtl else 'ltr' }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ T('app_name') }}{% block title %}{% endblock %}</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1b7a3d">
+<link rel="stylesheet" href="/static/style.css">
+{% if rtl %}
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap" rel="stylesheet">
+<style>body{font-family:'Noto Nastaliq Urdu','Jameel Noori Nastaleeq',serif; line-height:2.1;}</style>
+{% endif %}
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/">🛒 {{ T('app_name') }}</a>
+  <nav>
+    <a href="/track">📦 {{ T('track_order') }}</a>
+    <a href="/cart">🧺 {{ T('cart') }} <span class="badge">{{ cart_count }}</span></a>
+    {% if user_name %}
+    <span class="user">👤 {{ user_name }}</span>
+    <a href="/logout">{{ T('logout') }}</a>
+    {% else %}
+    <a href="/register">📱 {{ T('register_login') }}</a>
+    {% endif %}
+    <a class="langbtn" href="?lang={{ 'en' if rtl else 'ur' }}">{{ T('lang_toggle') }}</a>
+  </nav>
+</header>
+<main class="wrap">
+{% block content %}{% endblock %}
+</main>
+<footer class="footer">{{ T('footer_note') }}</footer>
+<script>
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/static/sw.js').catch(()=>{}); }
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<h1>{{ T('riders') }}</h1>
+<form method="post" action="/admin/riders/add" class="form inline-add">
+  <h3>{{ T('add_rider') }}</h3>
+  <input name="name" required placeholder="{{ T('rider_name') }}">
+  <input name="username" required placeholder="{{ T('username') }}">
+  <input name="password" type="password" required placeholder="{{ T('password') }}">
+  <input name="phone" placeholder="{{ T('phone') }}">
+  <button class="btn" type="submit">{{ T('add') }}</button>
+</form>
+{% for r in rows %}
+<div class="card">
+  <div class="card-title">{{ r['name'] }} <span class="muted small">@{{ r['username'] }} • {{ r['phone'] }}</span></div>
+  <div class="card-sub">{{ T('active') if r['active'] else T('closed') }}</div>
+  <div class="rowbtns">
+    <form method="post" action="/admin/riders/{{ r['id'] }}/toggle">
+      <button class="btn small" type="submit">{{ T('closed') if r['active'] else T('active') }}</button>
+    </form>
+    <form method="post" action="/admin/riders/{{ r['id'] }}/delete" onsubmit="return confirm('{{ T('confirm_delete') }}')">
+      <button class="btn small danger" type="submit">{{ T('delete') }}</button>
+    </form>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

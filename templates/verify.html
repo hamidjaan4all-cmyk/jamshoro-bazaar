@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %} — {{ T('register_login') }}{% endblock %}
+{% block content %}
+<h1>🔐 {{ T('enter_otp') }}</h1>
+<p>{{ phone }}</p>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+{% if demo_code %}
+<div class="demobox">
+  <div class="demonote">⚠️ {{ T('demo_otp_note') }}</div>
+  <div class="democode">{{ T('your_demo_code') }}: <strong>{{ demo_code }}</strong></div>
+</div>
+{% endif %}
+<form method="post" action="/register/verify?next={{ next }}" class="form">
+  <input type="hidden" name="next" value="{{ next }}">
+  <label>{{ T('enter_otp') }}
+    <input name="code" required inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="one-time-code">
+  </label>
+  {% if is_new %}
+  <label>{{ T('your_name_first') }}
+    <input name="name" required>
+  </label>
+  {% endif %}
+  <button class="btn big" type="submit">{{ T('verify_continue') }}</button>
+</form>
+<form method="post" action="/register/resend?next={{ next }}" class="form">
+  <input type="hidden" name="next" value="{{ next }}">
+  <button class="btn ghost" type="submit">{{ T('resend_code') }}</button>
+</form>
+{% endblock %}

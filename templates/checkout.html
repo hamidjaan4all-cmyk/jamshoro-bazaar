@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %} — {{ T('checkout') }}{% endblock %}
+{% block content %}
+<h1>{{ T('checkout_title') }}</h1>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<form method="post" action="/checkout" class="form">
+  <label>{{ T('your_name') }}<input name="name" required value="{{ form.name if form else user_name }}"></label>
+  <label>{{ T('mobile_number') }}<input name="phone" required inputmode="numeric" placeholder="03001234567" value="{{ form.phone if form else user_phone }}" readonly></label>
+  <label>{{ T('area') }}
+    <select name="area" required>
+      <option value="">{{ T('select_area') }}</option>
+      {% for key, en, ur in areas %}
+      <option value="{{ key }}" {% if form and form.area == key %}selected{% endif %}>{{ ur if rtl else en }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>{{ T('address_detail') }}<input name="address" required placeholder="{{ T('address_hint') }}" value="{{ form.address if form else '' }}"></label>
+  <div class="paybox">💵 {{ T('payment_method') }}: <strong>{{ T('cod') }}</strong></div>
+  <div class="totals">
+    <div><span>{{ T('subtotal') }}</span><span>{{ T('rs') }} {{ subtotal|int }}</span></div>
+    <div><span>{{ T('delivery_fee') }}</span><span>{% if fee == 0 %}{{ T('free') }}{% else %}{{ T('rs') }} {{ fee|int }}{% endif %}</span></div>
+    <div class="grand"><span>{{ T('grand_total') }}</span><span>{{ T('rs') }} {{ total|int }}</span></div>
+  </div>
+  <button class="btn big" type="submit">{{ T('place_order') }}</button>
+</form>
+{% endblock %}

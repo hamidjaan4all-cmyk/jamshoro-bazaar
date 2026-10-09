@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %} — {{ T('track_order') }}{% endblock %}
+{% block content %}
+<h1>{{ T('track_title') }}</h1>
+<form class="searchbar" method="get" action="/track">
+  <input name="code" value="{{ code }}" placeholder="{{ T('enter_order_id') }}">
+  <button type="submit">🔍</button>
+</form>
+<form class="searchbar" method="get" action="/track">
+  <input name="phone" inputmode="numeric" placeholder="{{ T('or_phone') }}">
+  <button type="submit">🔍</button>
+</form>
+
+{% if not_found %}<p class="error">{{ T('order_not_found') }}</p>{% endif %}
+
+{% if order %}
+<div class="card">
+  <div class="card-title">{{ order['order_code'] }}</div>
+  <div class="card-sub">{{ T('delivery_to') }}: {{ order['customer_name'] }} • {{ area_name(order['area_key']) }} • {{ order['address_detail'] }}</div>
+  <div class="card-sub">{{ T('rider') }}: {{ order['rider_name'] or T('not_assigned') }}</div>
+  <div class="timeline">
+    {% for s in ['placed','confirmed','preparing','onway','delivered'] %}
+    <div class="step{{ ' done' if order['status'] in ['placed','confirmed','preparing','onway','delivered'] and ['placed','confirmed','preparing','onway','delivered'].index(s) <= ['placed','confirmed','preparing','onway','delivered'].index(order['status']) else '' }}{{ ' cancelled' if order['status']=='cancelled' else '' }}">{{ st_name(s) }}</div>
+    {% endfor %}
+    {% if order['status']=='cancelled' %}<div class="step cancelled">{{ st_name('cancelled') }}</div>{% endif %}
+  </div>
+  <h3>{{ T('ordered_items') }}</h3>
+  {% for it in items %}
+  <div class="row"><span>{{ it['name_ur'] if rtl else it['name_en'] }} × {{ it['qty'] }}</span><span>{{ T('rs') }} {{ it['line_total']|int }}</span></div>
+  {% endfor %}
+  <div class="row grand"><span>{{ T('grand_total') }}</span><span>{{ T('rs') }} {{ order['total']|int }}</span></div>
+</div>
+{% endif %}
+
+{% if orders %}
+<h2>{{ T('your_orders') }}</h2>
+{% for o in orders %}
+<a class="card" href="/track?code={{ o['order_code'] }}">
+  <div class="card-title">{{ o['order_code'] }}</div>
+  <div class="card-sub">{{ o['created_at'] }} • {{ T('rs') }} {{ o['total']|int }}</div>
+  <span class="pill">{{ st_name(o['status']) }}</span>
+</a>
+{% endfor %}
+{% endif %}
+{% endblock %}

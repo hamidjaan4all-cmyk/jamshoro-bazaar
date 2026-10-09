@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %} — {{ T('cart') }}{% endblock %}
+{% block content %}
+<h1>{{ T('your_cart') }}</h1>
+{% if lines %}
+<div class="items">
+{% for ln in lines %}
+  <div class="item">
+    <div>
+      <div class="item-name">{{ ln.item['name_ur'] if rtl else ln.item['name_en'] }}</div>
+      <div class="muted small">{{ ln.item['shop_ur'] if rtl else ln.item['shop_en'] }}</div>
+      <div class="price">{{ T('rs') }} {{ ln.item['price']|int }} × {{ ln.qty }} = {{ T('rs') }} {{ ln.line_total|int }}</div>
+    </div>
+    <form method="post" action="/cart/update" class="qtyform">
+      <input type="hidden" name="item_id" value="{{ ln.item['id'] }}">
+      <input type="number" name="qty" value="{{ ln.qty }}" min="0" max="99">
+      <button class="btn small" type="submit">{{ T('update') }}</button>
+    </form>
+  </div>
+{% endfor %}
+</div>
+<div class="totals">
+  <div><span>{{ T('subtotal') }}</span><span>{{ T('rs') }} {{ subtotal|int }}</span></div>
+  <div><span>{{ T('delivery_fee') }}</span><span>{% if fee == 0 %}{{ T('free') }}{% else %}{{ T('rs') }} {{ fee|int }}{% endif %}</span></div>
+  <div class="grand"><span>{{ T('grand_total') }}</span><span>{{ T('rs') }} {{ total|int }}</span></div>
+</div>
+<p class="muted small">💡 {{ T('free_delivery_note') }}</p>
+<a class="btn big" href="/checkout">{{ T('checkout') }} →</a>
+{% else %}
+<p>{{ T('cart_empty') }}</p>
+<a class="btn" href="/">{{ T('home') }}</a>
+{% endif %}
+{% endblock %}

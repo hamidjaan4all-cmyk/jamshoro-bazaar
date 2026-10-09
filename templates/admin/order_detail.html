@@ -1,0 +1,39 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<a href="/admin/orders">← {{ T('back') }}</a>
+<h1>{{ T('order_details') }}: {{ order['order_code'] }}</h1>
+<div class="card">
+  <div class="card-sub"><strong>{{ T('customer') }}:</strong> {{ order['customer_name'] }} • {{ order['phone'] }}</div>
+  <div class="card-sub"><strong>{{ T('address') }}:</strong> {{ area_name(order['area_key']) }}, {{ order['address_detail'] }}</div>
+  <div class="card-sub"><strong>{{ T('order_date') }}:</strong> {{ order['created_at'] }}</div>
+  <div class="card-sub"><strong>{{ T('rider') }}:</strong> {{ order['rider_name'] or T('unassigned') }}</div>
+  {% for it in items %}
+  <div class="row"><span>{{ it['name_ur'] if rtl else it['name_en'] }} × {{ it['qty'] }}</span><span>{{ T('rs') }} {{ it['line_total']|int }}</span></div>
+  {% endfor %}
+  <div class="row"><span>{{ T('delivery_fee') }}</span><span>{{ T('rs') }} {{ order['delivery_fee']|int }}</span></div>
+  <div class="row grand"><span>{{ T('grand_total') }}</span><span>{{ T('rs') }} {{ order['total']|int }}</span></div>
+</div>
+<div class="two">
+<form method="post" action="/admin/orders/{{ order['id'] }}/status" class="form">
+  <label>{{ T('change_status') }}
+    <select name="status">
+      {% for s in statuses %}
+      <option value="{{ s }}" {% if order['status'] == s %}selected{% endif %}>{{ st_name(s) }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button class="btn" type="submit">{{ T('update') }}</button>
+</form>
+<form method="post" action="/admin/orders/{{ order['id'] }}/assign" class="form">
+  <label>{{ T('assign_rider') }}
+    <select name="rider_id">
+      <option value="">{{ T('unassigned') }}</option>
+      {% for r in riders %}
+      <option value="{{ r['id'] }}" {% if order['rider_id'] == r['id'] %}selected{% endif %}>{{ r['name'] }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button class="btn" type="submit">{{ T('update') }}</button>
+</form>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<p class="tagline">{{ T('tagline') }}</p>
+
+<form class="searchbar" method="get" action="/">
+  <input type="search" name="q" value="{{ q }}" placeholder="{{ T('search_placeholder') }}">
+  <button type="submit">🔍</button>
+</form>
+
+<h2>{{ T('categories') }}</h2>
+<div class="tiles">
+  <a class="tile{{ ' active' if not cat }}" href="/">✨ {{ T('all') }}</a>
+  {% for c in categories %}
+  <a class="tile{{ ' active' if cat == c['key'] }}" href="/?cat={{ c['key'] }}">
+    {{ c['name_ur'] if rtl else c['name_en'] }}
+  </a>
+  {% endfor %}
+</div>
+
+<h2>{{ T('shops_near_you') }}</h2>
+<div class="cards">
+{% for s in shops %}
+  <a class="card" href="/shop/{{ s['id'] }}">
+    <div class="card-title">{{ s['name_ur'] if rtl else s['name_en'] }}</div>
+    <div class="card-sub">{{ T(s['cat_key']) }} • {{ area_name(s['area_key']) }}</div>
+    <span class="pill {{ 'on' if s['is_open'] else 'off' }}">{{ T('open') if s['is_open'] else T('closed') }}</span>
+  </a>
+{% else %}
+  <p>{{ T('no_shops') }}</p>
+{% endfor %}
+</div>
+{% endblock %}

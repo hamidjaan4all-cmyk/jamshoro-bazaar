@@ -1,0 +1,18 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<h1>{{ T('categories') }}</h1>
+<form method="post" action="/admin/categories/add" class="form inline-add">
+  <input name="key" required placeholder="key (e.g. cat_dairy)">
+  <input name="name_en" required placeholder="Name (EN)">
+  <input name="name_ur" required placeholder="نام (اردو)">
+  <button class="btn" type="submit">{{ T('add') }}</button>
+</form>
+{% for c in rows %}
+<div class="card">
+  <div class="card-title">{{ c['name_en'] }} / {{ c['name_ur'] }} <span class="muted small">({{ c['key'] }})</span></div>
+  <form method="post" action="/admin/categories/{{ c['id'] }}/delete" onsubmit="return confirm('{{ T('confirm_delete') }}')">
+    <button class="btn small danger" type="submit">{{ T('delete') }}</button>
+  </form>
+</div>
+{% endfor %}
+{% endblock %}
